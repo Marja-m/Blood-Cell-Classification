@@ -1,51 +1,51 @@
 # Blood-Cell-Classification
 White blood cells types along with erythroblasts, platelets, etc. can be to differentiate, yet their identification can shed light on immune response and illness. This project is an exercise for problem formulation, data visualization, feature selection, and comparison between different ML models in terms of how they perform during validation.
 
-#Machine Learning Report on Classifying White Blood Cells, Platelets, and Erythroblasts (September 2025)
+##  Machine Learning Report on Classifying White Blood Cells, Platelets, and Erythroblasts (September 2025)
 
-#2. Introduction
+##  2. Introduction
 White blood cells are important indicators of a patient's health and immune immunity. The five main blood cell types can be categorized into granulocytes and mononuclear cells. Granulocytes “have small granules that release enzymes when your immune system is under attack” and multi-lobed nuclei (Cleveland Clinic) and include neutrophils, eosinophils, and basophils. On the other hand, mononuclear cells have a single nucleus (Muir) and include lymphocytes and monocytes. In addition to these cells, erythroblasts, immature granulocytes, and platelets are found in blood and share visual similarities with different types of white blood cells. Since white blood cells and the previously mentioned other molecules that are found in blood can be difficult to distinguish from one another, yet their identification can shed light on an individual’s health and immune responses, a machine learning algorithm that can distinguish different white blood cells could be beneficial. There have already been advanced models created for this purpose, for example, a YOLOv8 model with an F1-score measurement of 0.989 (Abozeid, et al.). However, for the purposes of this course project, we will attempt to create a model based on a Kaggle dataset to understand more about problem formulation, data visualization, feature selection, and comparison between different ML models in terms of how they perform during validation. 
 Problem Formulation
-#2.1. Explanation for Datapoints, Features, and Labels
+##  2.1. Explanation for Datapoints, Features, and Labels
 The data points are individual images of neutrophils, eosinophils, basophils, lymphocytes, monocytes, immature granulocytes (promyelocytes, myelocytes, and metamyelocytes), erythroblasts and platelets. The data points are labeled by clinical pathologists and organized into folders based on their labels in the downloaded file. Since the project aim is to categorize white blood cell types along with erythroblasts and platelets, the dataset is categorical. Additionally, since the data is pre-labeled for validation, the project is a supervised learning task. Each pixel for one data point (image) will serve as a feature (column in a pandas dataframe) for the model with grayscale intensity (0 to 255) serving as the value.
 
-#2.2. Source of Project Data
+##  2.2. Source of Project Data
 The source of the project data is Kaggel and was uploaded by Christian Howard. The images were collected at the Core Laboratory at the Hospital Clinic of Barcelona using a CellaVision DM96 analyzer (Howard). 
 
-#3. Methods
+##  3. Methods
 To note, Aalto’s artificial intelligence model was used when programming for the methods section in order to review python syntax and help check for errors.
-#3.1 Number, Brief Description, and Preprocessing of Datapoints
+##  3.1 Number, Brief Description, and Preprocessing of Datapoints
 The dataset has 17,092 images broken down into basophil (1218 images), eosinophil (3117 images), erythroblast (1551 images), immature granulocytes (2895 images), lymphocyte (1214 images), monocyte (1420 images), neutrophil (3329 images) and 
 Platelet (2348 images). The initial dataset images are on a RGB colorscale and 360x363 pixels. As part of my data visualization process, the images were first converted to grayscale by reading them in through the .imread function from the OpenCV library (see appendix 5).  Then, the images were resized before processing into a feature vector to reduce the number of features from 130680 to a more reasonable size relative to the number of datapoints, dataframe size, and operation time. So, after comparing levels of abstraction between resizing to 10000 pixels compared to 4096, the images were resized to 64x64 pixels. 
 
 Labels were also encoded for model training to have values 0-7, such that basophil is 0, eosinophil is 1, erythroblast is 2, immature granulocyte is 3, lymphocyte is 4, monocyte is 5, neutrophil is 6, and platelet is 7. 
-#3.2 Feature Selection Process
+##  3.2 Feature Selection Process
 Then, further processing and feature reduction was left to primary component analysis (PCA). This was used instead of experimenting with further variations of pixel number because PCA provides an evaluation method (cumulative variance ratio) that is more objective than human visual analysis (as was performed when choosing the resizing metrics). After first studying the graph provided by reducing the feature number to 150, it was noted that the explained variance ratio for any single feature was already under 0.1 starting from the second most important feature. However, it was decided to continue with PCA to help reduce dimensionality and focus on the most informative parts of the image while taking less information from, for example, the background, which is always white. The transformation that was ultimately decided on was PCA with a parameter of the lowest number of features n, such that 95% of the total variance is explained (variance threshold). The n number of features was then 819.
-#3.3 Choice of ML Models
+##  3.3 Choice of ML Models
 The first model, multinomial logistic regression, was chosen because the problem has multiple categories/labels with no inherent order. Additionally, it is easy to implement with the scikit-learn package function LogisticRegression. Initially, dividing the process into two layers of logistic regression was considered. The first sorting was to depend on whether the images had a white blood cell with one nucleus, many, or where not white blood cells.  This was because of the structural similarities between the specimens under each category. However, after training logistic regression with just one overall map and analyzing the resulting confusion matrix (appendix 2), it could be seen that inaccurate predicted labels were not limited to misclassification within the previously mentioned structural groupings. For example, basophil cells were inaccurately predicted to be immature granulocytes at a rate of 43.5% (appendix 2.). Basophils belong under granulocytes, while immature granulocytes belong in the non-white blood cell category.
 The second chosen method is multilayer perception (MLP) with the rectified linear unit as the activation function and ADAM as the optimization method because it is a good comparison to the simpler logistic regression model. Additionally, each datapoint is fairly high dimensional with 819 features and may be best described by a non-linear relationship. The multilayer perception classifier is also easy to implement for this classification problem through the scikit-learn function MLP classifier. To help with programming the model I referenced the program for the MLP regression in assignment 3.
-#3.4 Choice of Loss Function
+##  3.4 Choice of Loss Function
 The loss function used in training will be logistic loss for both the logistic regression and the MLP classifier because the scikit-learn classes LogisticRegression and MLPClassifier use it for fitting model instances through the .fit() function. Using scikit-learn classes makes the programming process easier and log loss provides enough information to update parameters. Another reason for using log loss as the loss function in training is because it then differs from the validation method used in the validation process, which is accuracy (as the main initial method for faster computing).
-3.5 Data Splitting for Validation
+##  3.5 Data Splitting for Validation
 The data was split using scikit-learn’s split function because it is a method that helps avoid introducing bias into the data splitting process. Seventy-percent of the data was set aside for training. Then, the 30% of remaining data was split again evenly, into 50% validation and 50% test data. So the split is 70-15-15 for training, validation, and testing. The amount left for training was not lower because of the limited amount of data compared to the number of features. Having too few data points compared to the large number of features could cause overfitting.
-#4. Results
-#4.1 Comparison and Discussion of Training and Validation Errors
+##  4. Results
+##  4.1 Comparison and Discussion of Training and Validation Errors
 To compare the errors of each model, one evaluation metric used was accuracy because it is easy to interpret for classification problems (number of correct labels divided by number of all predicted labels). For the logistic regression model, the training accuracy is  75.78% and the validation accuracy is 60.96%. However, accuracy does not provide a full description of how well the model is performing. For example, it does not account for imbalances in the dataset. So, a confusion matrix was also generated, as previously mentioned. 
 
 When it came to the MLP model, initially, only accuracy measures were compared between 1, 2, 3, 4, 10, 15, 20, or 30 layers with 1, 2, 5, 10, 15, 30, or 40 neurons to find a best fit. The maximum number of layers and neurons were kept limited because of limited computational capacity. The training accuracy and validation accuracy for each of these model iterations can be found as appendix (3). Confusion matrices were not generated for each iteration because of limited computational capacity. Comparing the different training and validation accuracies, the best option for the MLP model was 15 hidden layers with 40 neurons each. This option had a training accuracy of 98.9% and a validation accuracy of 64.2%, which was the best validation accuracy of the MLP options tested (appendix 3). Then, to compare with the logistic regression model, a confusion matrix for the 15 layer, 40 neuron model was generated (appendix 4).
-4.2 Final Chosen Method
+##  4.2 Final Chosen Method
 The final chosen method was the MLP classification model with 15 layers and 40 neurons. One reason for this is because the validation accuracy (64.2%) was higher than that for logistic regression (60.69%). Additionally, when analyzing the confusion matrix for the MLP classification model, for each true label, the number of times a label was predicted was highest for the correct label. For example, of true basophil datapoints, the label was predicted to be basophil for 86 datapoints, while for 6 t it was predicted to be eosinophil, erythroblast for 7, immature granulocyte for 46, lymphocyte for 8, monocyte for 21, neutrophil for 2, and platelet for 1. On the other hand, the confusion matrix for the logistic regression model showed that true basophil data points were predicted to be immature granulocytes more often than basophils. Thus, when considering both the validation accuracy and confusion matrix, the MLP classification model was the best choice (while still not taking up too many computational resources, despite requiring more than the logistic regression).
-#4.3 Test Error of Final Chosen Method
+##  4.3 Test Error of Final Chosen Method
 The test data came from the previously described (section 3.5) split between 70-15-15 of the total data using scikit-learns split function. Again, having too few data points in the training set could lead to overfitting, so it was important to keep the number of datapoints in the training set relatively large.
 
 The test error of the final chosen method, when evaluated with the test data is 2.6090. 
 The accuracy is 62.2%. 
-#5. Conclusion
-#5.1 Summary and Report of Findings
+##  5. Conclusion
+##  5.1 Summary and Report of Findings
 In this report, it was found that after resizing the images and running the data through PCA to reduce features to 819, a multilayer perception model was better for predicting labels than a logistic regression model. Ultimately, classifying microscopic images of white blood cells can help in identifying what issues a medical patient may be suffering from. For example, granulocytes are released in response to infections, allergies, and inflammation, while monocytes (which are mononuclear cells) tend to play a role in longer-term immune responses. However, considering the test error (average loss for the test set) of about 2.6 and accuracy of about 62%, there is much to be improved on.
-#5.2 Room for Improvement
+##  5.2 Room for Improvement
 The high test error seems to indicate that the model is overconfident. Additionally, the high training accuracy compared to the lower test accuracy may indicate overfitting in all models tested. So, there is significant room for improvement.
-#5.3 Limitation of Methods and Further Improvement
+##  5.3 Limitation of Methods and Further Improvement
 One of the limitations in the methods used was limited computational resources. For example, it was not feasible to run PCA on the large number of features that could have been used from the raw image data because loading the data into a csv file would have taken too long. Additionally, PCA may not be the best option for feature reduction. For example, considering how the total variance was spread over many features, kernel-PCA could be a good option. Further, models that use loss functions other than log-loss for training could be beneficial to attempt. 
 
 
